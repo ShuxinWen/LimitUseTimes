@@ -1,0 +1,58 @@
+using Microsoft.Win32;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class LimitUseTime : MonoBehaviour
+{
+    private Text _text;
+    // Start is called before the first frame update
+    void Start()
+    {
+        _text = GameObject.Find("Text").GetComponent<Text>();
+        SetPlayUseTime();
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+
+    }
+    void SetPlayUseTime()
+    {
+        RegistryKey RootKey, RegKey;
+       //项名为：HKEY_CURRENT_USER\Software
+       RootKey = Registry.CurrentUser.OpenSubKey("SOFTWARE", true);
+       //打开子项：HKEY_CURRENT_USER\Software\MyRegDataApp
+       if ((RegKey = RootKey.OpenSubKey("TestToControlUseTime", true)) == null)
+        {
+            RootKey.CreateSubKey("TestToControlUseTime");       //不存在，则创建子项
+           RegKey = RootKey.OpenSubKey("TestToControlUseTime", true);
+            RegKey.SetValue("UseTime", (object)2);              //创建键值，存储可使用次数
+            _text.text += "设置可使用次数:2次";
+        }
+        try
+        {
+            object usetime = RegKey.GetValue("UseTime");        //读取键值，可使用次数
+            _text.text += "\n当前可用次数:" + usetime + "次";
+            int newtime = int.Parse(usetime.ToString()) - 1;
+            if (newtime < 0)
+
+            {
+                Application.Quit();
+            }
+            else
+            {
+                RegKey.SetValue("UseTime", (object)newtime);    //更新键值，可使用次数减1
+                _text.text += "\n剩余可用次数:" + newtime + "次";
+            }
+        }
+        catch
+        {
+            //RegKey.SetValue("UseTime", (object)2);
+            //print("更新使用2次");
+        }
+
+    }
+}
